@@ -1,0 +1,160 @@
+Objective of the Lab:
+In this lab, you will install Apache2, a widely used web server software. You'll enable a site that is different from the default and enable additional features on the server. At the end of the lab we would have deployed and configured a website using Apache2. 
+
+Linux commands used during lab:
+
+sudo <command>: executes a command with administrator rights
+apt update: updates the list of available packages to be installed
+apt install package: installs the given package in the system
+ls <directory>: lists the files in a directory
+cp <old> <new>: creates a copy of the old file with the new name
+mv <old> <new>: moves or renames the old file to the new name
+nano <file>: opens a text editor to edit the file
+cat <file>: outputs the whole contents of a file
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+The developed website is currently inside the /opt/devel/ourcompany directory. Let's look at the contents of this directory:
+
+ls -l /opt/devel/ourcompany
+
+total 20
+-rwxr-xr-x 1 student student 561 Aug 11 12:07 aboutus.html
+-rwxr-xr-x 1 student student 551 Aug 11 12:07 contact.html
+-rwxr-xr-x 1 student student  95 Aug 11 12:07 footer.html
+-rwxr-xr-x 1 student student 596 Aug 11 12:07 index.html
+-rw-r--r-- 1 student student 777 Aug 11 12:07 style.css
+
+
+Install Apache2:
+
+sudo apt update
+sudo apt install apache2
+
+
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+  apache2-bin apache2-data apache2-utils libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap libbrotli1
+  libjansson4 liblua5.2-0 ssl-cert
+Suggested packages:
+  apache2-doc apache2-suexec-pristine | apache2-suexec-custom www-browser openssl-blacklist
+The following NEW packages will be installed:
+  apache2 apache2-bin apache2-data apache2-utils libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap libbrotli1
+  libjansson4 liblua5.2-0 ssl-cert
+0 upgraded, 12 newly installed, 0 to remove and 23 not upgraded.
+Need to get 2628 kB of archives.
+After this operation, 8946 kB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+
+
+sudo service apache2 status
+apache2 is not running ... failed!
+sudo service apache2 start
+
+Apache2 will start serving its defult webpage. To see this default web page, enter the External IP address that's shown in the connection panel, in a new separate browser tab.
+
+
+We now need to make sure the web server is serving our site, not the default one.For example, you could have an institutional site running on http://www.example.com and an e-commerce site running on http://shop.example.com, with both hosted on the same machine. This is known as Virtual Hosts. The list of sites that are available is located in /etc/apache2/sites-available. Let's look at what the contents of that directory looks like.
+
+ls -l /etc/apache2/sites-available
+total 12
+-rw-r--r-- 1 root root 1332 Aug  8  2020 000-default.conf
+-rw-r--r-- 1 root root 6338 Aug  8  2020 default-ssl.conf
+
+We see that there are two websites available. The default website configured by 000-default.conf is the one we've visited, and the default encrypted website is managed by default-ssl.conf.
+
+cat /etc/apache2/sites-available/000-default.conf
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+ 
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+ 
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+ 
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+ 
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with "a2disconf".
+        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost> 
+ 
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+sudo mv /opt/devel/ourcompany /var/www/ourcompany
+ls -l /var/www
+
+We want to create our own site, so let's make a copy of the default site and then edit the new file.
+
+cd /etc/apache2/sites-available
+sudo cp 000-default.conf 001-ourcompany.conf
+sudo nano 001-ourcompany.conf
+
+The last command will open the nano text editor. We will be able to edit the file and change it as needed. In this case, we are going to change the directory where the files are stored. Instead of /var/www/html we will put our site in /var/www/ourcompany, so let's change that in the configuration file.
+
+<VirtualHost *:80> 
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+ 
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/ourcompany
+ 
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+ 
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+ 
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with "a2disconf".
+        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+       # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+
+Next, I'm going to enable our new site and disable the default one:
+
+sudo a2ensite 001-ourcompany.conf
+Enabling site 001-ourcompany.
+To activate the new configuration, you need to run:
+  service apache2 reload
+sudo a2dissite 000-default.conf
+Site 000-default disabled.
+
+And now let's look at the contents of the directory again:
+
+ls -l /etc/apache2/sites-enabled
+
+total 0
+lrwxrwxrwx 1 root root 38 Aug 11 12:19 001-ourcompany.conf -> ../sites-available/001-ourcompany.conf
+
+
+
+
